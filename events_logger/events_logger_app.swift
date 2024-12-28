@@ -1,11 +1,9 @@
 import Cocoa
-import Accessibility
-import Darwin
 
-struct FocusedWindow : Equatable {
-    var appName: String
-    var windowTitle: String
-    var bundleIdentifier: String
+struct FocusedWindow : Equatable, Codable {
+    let appName: String
+    let windowTitle: String
+    let bundleIdentifier: String
 }
 
 class EventsLoggerAppDelegate : NSObject, NSApplicationDelegate {
@@ -37,15 +35,50 @@ class EventsLoggerAppDelegate : NSObject, NSApplicationDelegate {
                 let currentWindow = FocusedWindow(appName: NSWorkspace.shared.frontmostApplication?.localizedName ?? "", windowTitle: windowTitle, bundleIdentifier: NSWorkspace.shared.frontmostApplication?.bundleIdentifier ?? "")
                 if currentWindow != lastFocusedWindow {
                     lastFocusedWindow = currentWindow
-                    print(lastFocusedWindow)
+                    storeEventToServer(window: lastFocusedWindow)
                 }
             }
         }
     }
 
+    func storeEventToServer(window: FocusedWindow) -> Void {
+        guard let url = URL(string: "http://localhost:6969/event") else {
+            print("Invalid URL")
+            return
+        }
+        do {
+            let encoder = JSONEncoder()
+            encoder.keyEncodingStrategy = .convertToSnakeCase
+            let jsonData = try encoder.encode(window)
+            // debug
+            // print(String(data: jsonData, encoding: .utf8)!)
+            var request = URLRequest(url: url)
+            request.httpMethod = "POST"
+            request.setValue("application/json", forHTTPHeaderField: "Content-Type")
+            request.httpBody = jsonData
+            let task = URLSession.shared.dataTask(with: request) { _, response, error in
+                if let error = error {
+                    print("Error making the request: \(error.localizedDescription)")
+                    return
+                }
+
+                // Handle the response
+                if let response = response as? HTTPURLResponse {
+                    if response.statusCode != 200 {
+                        print("Error: HTTP status code \(response.statusCode)")
+                    }
+                }
+            }
+
+            task.resume()
+        } catch {
+            print("Failed to make request: \(error.localizedDescription)")
+        }
+    }
+
     func applicationWillTerminate(_ notification: Notification) {
         // Clean up observers
-        NotificationCenter.default.removeObserver(self)
+        NSWorkspace.shared.notificationCenter.removeObserver(self)
     }
 }
 
