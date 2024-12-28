@@ -42,7 +42,7 @@ func storeEvent(window FocusedWindow) {
 	if window.Url != "" {
 		app = window.Url
 	}
-	logLine := fmt.Sprintf("[%s] Currently focusing on application `%s` titled `%s`\n", time, app, window.WindowTitle)
+	logLine := fmt.Sprintf("[%s] `%s` titled `%s`\n", time, app, window.WindowTitle)
 	_, err = writer.WriteString(logLine)
 	if err != nil {
 		fmt.Println("Error writing to file:", err)
