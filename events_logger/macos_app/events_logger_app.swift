@@ -12,13 +12,21 @@ class EventsLoggerAppDelegate : NSObject, NSApplicationDelegate {
     
     func applicationDidFinishLaunching(_ notification: Notification) {
         handle()
-        NSWorkspace.shared.notificationCenter.addObserver(self,
+
+        NSWorkspace.shared.notificationCenter.addObserver(
+            self,
             selector: #selector(activatedApp),
             name: NSWorkspace.didActivateApplicationNotification,
             object: nil)
+
+        NSEvent.addGlobalMonitorForEvents(matching: .leftMouseUp, handler: keyHandler)
     }
 
     @objc dynamic func activatedApp(_ notification: Notification) {
+        handle()
+    }
+
+    func keyHandler(_ event: NSEvent) -> Void {
         handle()
     }
 
