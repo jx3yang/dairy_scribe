@@ -15,6 +15,7 @@ type FocusedWindow struct {
 	AppName          string `json:"app_name"`
 	WindowTitle      string `json:"window_title"`
 	BundleIdentifier string `json:"bundle_identifier"`
+	Url              string `json:"url,omitempty"`
 }
 
 func getFile(filePrefix, day string) string {
@@ -34,7 +35,14 @@ func storeEvent(window FocusedWindow) {
 	defer file.Close()
 
 	writer := bufio.NewWriter(file)
-	logLine := fmt.Sprintf("[%s] Currently focusing on application `%s (%s)` titled `%s`\n", time, window.AppName, window.BundleIdentifier, window.WindowTitle)
+	app := fmt.Sprintf("%s (%s)", window.AppName, window.BundleIdentifier)
+	if window.AppName == "Google Chrome" && window.Url == "" {
+		return
+	}
+	if window.Url != "" {
+		app = window.Url
+	}
+	logLine := fmt.Sprintf("[%s] Currently focusing on application `%s` titled `%s`\n", time, app, window.WindowTitle)
 	_, err = writer.WriteString(logLine)
 	if err != nil {
 		fmt.Println("Error writing to file:", err)
@@ -44,6 +52,16 @@ func storeEvent(window FocusedWindow) {
 }
 
 func handleEvent(w http.ResponseWriter, r *http.Request) {
+	// TODO: clean this up
+	w.Header().Set("Access-Control-Allow-Origin", "*")
+	w.Header().Set("Access-Control-Allow-Methods", "POST, PUT, PATCH, GET, DELETE, OPTIONS")
+	w.Header().Set("Access-Control-Allow-Headers", "Origin, X-Api-Key, X-Requested-With, Content-Type, Accept, Authorization")
+
+	// Handle preflight OPTIONS request
+	if r.Method == http.MethodOptions {
+		return
+	}
+
 	if r.Method != http.MethodPost {
 		http.Error(w, "Invalid request method", http.StatusMethodNotAllowed)
 		return
