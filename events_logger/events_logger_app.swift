@@ -1,5 +1,6 @@
 import Cocoa
 import Accessibility
+import Darwin
 
 struct FocusedWindow : Equatable {
     var appName: String
@@ -13,19 +14,13 @@ class EventsLoggerAppDelegate : NSObject, NSApplicationDelegate {
     
     func applicationDidFinishLaunching(_ notification: Notification) {
         handle()
-
-        NSEvent.addGlobalMonitorForEvents(matching: NSEvent.EventTypeMask.keyDown, handler: keyHandler)
-        NSEvent.addGlobalMonitorForEvents(matching: NSEvent.EventTypeMask.leftMouseDown, handler: mouseKeyHandler)
+        NSWorkspace.shared.notificationCenter.addObserver(self,
+            selector: #selector(activatedApp),
+            name: NSWorkspace.didActivateApplicationNotification,
+            object: nil)
     }
 
-    func keyHandler(event: NSEvent) -> Void {
-        // cmd + tab
-        if event.modifierFlags.contains(.command) && event.keyCode == 48 {
-            handle()
-        }
-    }
-
-    func mouseKeyHandler(event: NSEvent) -> Void {
+    @objc dynamic func activatedApp(_ notification: Notification) {
         handle()
     }
 
@@ -55,6 +50,7 @@ class EventsLoggerAppDelegate : NSObject, NSApplicationDelegate {
 }
 
 func main() {
+    setbuf(stdout, nil)
     let delegate = EventsLoggerAppDelegate()
     NSApplication.shared.delegate = delegate
     NSApplication.shared.run()
