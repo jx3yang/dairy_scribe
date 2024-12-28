@@ -29,4 +29,5 @@ go build
 ```
 
 ## Design
-![image](https://github.com/user-attachments/assets/f0172251-30e9-4358-a016-efadd9f0d04c)
+![image](https://github.com/user-attachments/assets/f95d85b8-bfb1-4d1a-a071-e6017cdfc0c5)
+
