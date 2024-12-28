@@ -21,5 +21,12 @@ yarn && yarn build
 ```
 Import the extension at `chrome://extensions` by selecting the `events_logger/chrome_extension/dist/` directory
 
+## Run the Scribe
+```
+cd scribe/
+go build
+./scribe <path_to_logs>
+```
+
 ## Design
 ![image](https://github.com/user-attachments/assets/f0172251-30e9-4358-a016-efadd9f0d04c)
