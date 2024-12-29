@@ -24,6 +24,7 @@ func getFile(filePrefix, day string) string {
 
 func storeEvent(window FocusedWindow) {
 	currentTime := time.Now()
+	unixTime := currentTime.Unix()
 	formattedTime := strings.Split(currentTime.Format("2006-01-02 03:04:05"), " ")
 	day, time := formattedTime[0], formattedTime[1]
 	filePath := getFile("logs", day)
@@ -42,7 +43,7 @@ func storeEvent(window FocusedWindow) {
 	if window.Url != "" {
 		app = window.Url
 	}
-	logLine := fmt.Sprintf("[%s] `%s` titled `%s`\n", time, app, window.WindowTitle)
+	logLine := fmt.Sprintf("[%d][%s] `%s` titled `%s`\n", unixTime, time, app, window.WindowTitle)
 	_, err = writer.WriteString(logLine)
 	if err != nil {
 		fmt.Println("Error writing to file:", err)
