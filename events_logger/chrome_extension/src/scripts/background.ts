@@ -48,14 +48,32 @@ chrome.tabs.onActivated.addListener((activeInfo) => {
 
 chrome.tabs.onUpdated.addListener((tabId, changeInfo, tab) => {
   // Only proceed if the status is 'complete' (finished loading the page)
-  if (changeInfo.status === 'complete') {
+  // Or the title changed (for YouTube)
+
+  // Most websites: change title, and all metadata -> complete
+  // For YouTube: update some metadata -> complete -> change title
+
+  // Another edge case: YouTube front page -> click video -> complete -> change title to previous video -> change title to current video
+  // because why the f**k not?
+  if (changeInfo.status === 'complete' || changeInfo.title !== undefined) {
     chrome.tabs.query({ active: true, currentWindow: true }, function(tabs) {
       if (tabs.length > 0) {
         // Get the first (and only) active tab
         const activeTab = tabs[0];
-        if (activeTab.id === tabId) {
-          handleTabChange(tab);
+        if (activeTab.id !== tabId) {
+          return;
         }
+
+        // this is not the last event; wait for title change
+        if (tab.url?.includes('youtube.com') && changeInfo.status === 'complete') {
+          return;
+        }
+
+        if (!tab.url?.includes('youtube.com') && changeInfo.status !== 'complete') {
+          return;
+        }
+
+        handleTabChange(tab);
       } else {
         console.log("No active tab found.");
       }
